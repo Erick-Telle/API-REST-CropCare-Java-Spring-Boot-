@@ -80,8 +80,10 @@ Al iniciar por primera vez, se cargan automáticamente **22 especies** y **10 fa
 
 El archivo `render.yaml` define:
 
-- Un **Web Service** Java (plan gratuito) que compila con Maven y ejecuta el JAR.
+- Un **Web Service** con runtime **Docker** (plan gratuito) que compila con Maven y ejecuta el JAR vía `Dockerfile`.
 - Una base de datos **PostgreSQL** gratuita vinculada al servicio.
+
+> **Nota:** Render no tiene runtime nativo `java`. Las apps Spring Boot deben desplegarse con `runtime: docker`.
 
 Render configurará automáticamente:
 
@@ -96,9 +98,8 @@ Si prefieres configurar manualmente:
 1. **New → PostgreSQL** → crea la base `cropcare-db` (plan free).
 2. **New → Web Service** → conecta el repositorio.
 3. Configura:
-   - **Runtime:** Java
-   - **Build Command:** `./mvnw clean package -DskipTests`
-   - **Start Command:** `java -Dspring.profiles.active=production -jar target/cropcare-api-1.0.0.jar`
+   - **Runtime:** Docker
+   - Render detectará el `Dockerfile` en la raíz del proyecto.
 4. En **Environment**, añade:
    - `SPRING_PROFILES_ACTIVE` = `production`
    - Vincula la base PostgreSQL (Render inyectará `DATABASE_URL`, usuario y contraseña).
