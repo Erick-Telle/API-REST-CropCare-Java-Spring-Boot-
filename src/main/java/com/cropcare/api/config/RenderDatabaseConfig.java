@@ -36,13 +36,35 @@ public class RenderDatabaseConfig {
     }
 
     private boolean isPostgresConnectionUrl(String url) {
-        return url.startsWith("postgres://") || url.startsWith("postgresql://");
+        String normalized = stripJdbcPrefix(url);
+        return normalized.startsWith("postgres://") || normalized.startsWith("postgresql://");
     }
 
+    /**
+     * Convierte la URL de Render (postgresql://user:pass@host/db)
+     * a formato JDBC sin credenciales embebidas (jdbc:postgresql://host/db).
+     * Usuario y contraseña se configuran por separado en HikariCP.
+     */
     private String toJdbcUrl(String url) {
-        if (url.startsWith("jdbc:")) {
-            return url;
+        String normalized = stripJdbcPrefix(url);
+
+        if (!normalized.startsWith("postgres://") && !normalized.startsWith("postgresql://")) {
+            return "jdbc:" + normalized;
         }
-        return "jdbc:" + url;
+
+        String withoutScheme = normalized.replaceFirst("^postgresql?://", "");
+        int credentialsSeparator = withoutScheme.lastIndexOf('@');
+        String hostAndDatabase = credentialsSeparator >= 0
+                ? withoutScheme.substring(credentialsSeparator + 1)
+                : withoutScheme;
+
+        return "jdbc:postgresql://" + hostAndDatabase;
+    }
+
+    private String stripJdbcPrefix(String url) {
+        if (url.startsWith("jdbc:")) {
+            return url.substring("jdbc:".length());
+        }
+        return url;
     }
 }
